@@ -56,4 +56,4 @@ class HistoryService {
   }
 }
 
-export default new HistoryService();
+export default HistoryService;

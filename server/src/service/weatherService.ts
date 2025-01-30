@@ -32,13 +32,14 @@ class WeatherService {
   private apiKey: string;
   private cityName: string;
   constructor() {
-    this.baseURL = process.env.WEATHER_API_URL || '';
-    this.apiKey = process.env.WEATHER_API_KEY || '';
+    this.baseURL = process.env.API_BASE_URL || '';
+    this.apiKey = process.env.API_KEY || '';
     this.cityName = '';
   }
   // TODO: Create fetchLocationData method
    private async fetchLocationData(query: string) {
     this.cityName = query;
+    console.log(this.cityName);
     const geocode = this.buildGeocodeQuery();
     try {
       const response = await fetch(geocode);
@@ -57,13 +58,13 @@ class WeatherService {
    }
   // TODO: Create buildGeocodeQuery method
    private buildGeocodeQuery(): string {
-    const query = `${this.baseURL}/data/2.5/forecast?q=${this.cityName}&appid=${this.apiKey}`;
+    const query = `${this.baseURL}?q=${this.cityName}&appid=${this.apiKey}`;
     return query;
    }
   // TODO: Create buildWeatherQuery method
   private buildWeatherQuery(coordinates: Coordinates): string {
     const { lat, lon } = coordinates;
-    const query = `${this.baseURL}/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${this.apiKey}`;
+    const query = `${this.baseURL}?lat=${lat}&lon=${lon}&appid=${this.apiKey}`;
     return query;
   }
   // TODO: Create fetchAndDestructureLocationData method

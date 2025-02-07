@@ -1,4 +1,5 @@
 import './styles/jass.css';
+import dayjs from 'dayjs';
 
 // * All necessary DOM elements selected
 const searchForm: HTMLFormElement = document.getElementById(
@@ -127,7 +128,7 @@ const renderForecastCard = (forecast: any) => {
     createForecastCard();
 
   // Add content to elements
-  cardTitle.textContent = date;
+  cardTitle.textContent = dayjs(date).format('ddd, DD-MM-YY');;
   weatherIcon.setAttribute(
     'src',
     `https://openweathermap.org/img/w/${icon}.png`

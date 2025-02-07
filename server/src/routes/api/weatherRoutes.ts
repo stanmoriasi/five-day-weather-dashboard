@@ -5,16 +5,19 @@ const router = Router();
  import WeatherService from '../../service/weatherService.js';
 
 // TODO: POST Request with city name to retrieve weather data
-router.post('/', (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   // TODO: GET weather data from city name
   const weatherService = new WeatherService();
-  const { city } = req.body;
-  const weatherData = weatherService.getWeatherForCity(city);
-  return res.json(weatherData);
-
-  // TODO: save city to search history
+  const { cityName } = req.body;
+  try {
+  const weatherData =await weatherService.getWeatherForCity(cityName);  // TODO: save city to search history
   const historyService = new HistoryService();
-  historyService.addCity(city);
+  historyService.addCity(cityName);
+       return res.json(weatherData);
+  } catch(err) {
+    console.log(err)
+    return res.json(err);
+  }
 
 });
 
@@ -31,7 +34,6 @@ router.delete('/history/:id', async (req: Request, res: Response) => {
   const historyService = new HistoryService();
   await historyService.removeCity(id);
   return res.json({ message: `City removed from history` });
-
 });
 
 export default router;

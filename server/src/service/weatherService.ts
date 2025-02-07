@@ -13,14 +13,14 @@ class Weather {
   date: string;
   temperature: number;
   humidity: number;
-  windspeed:number;
+  windSpeed:number;
   icon: string;
-  constructor(city: string, date: string, temperature: number, humidity: number, windspeed: number, icon: string) {
+  constructor(city: string, date: string, temperature: number, humidity: number, windSpeed: number, icon: string) {
     this.city = city;
     this.date = date;
     this.temperature = temperature;
     this.humidity = humidity;
-    this.windspeed = windspeed;
+    this.windSpeed = windSpeed;
     this.icon = icon;
   }
 }
@@ -39,8 +39,20 @@ class WeatherService {
   // TODO: Create fetchLocationData method
    private async fetchLocationData(query: string) {
     this.cityName = query;
-    console.log(this.cityName);
-    const geocode = this.buildGeocodeQuery();
+    const geocode = this.buildGeocodeQuery('weather');
+    try {
+      const response = await fetch(geocode);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Unable to fetch location data');
+    }
+   }
+
+   private async fetchLocationForecastData(query: string) {
+    this.cityName = query;
+    const geocode = this.buildGeocodeQuery('forecast');
     try {
       const response = await fetch(geocode);
       const data = await response.json();
@@ -57,25 +69,25 @@ class WeatherService {
 
    }
   // TODO: Create buildGeocodeQuery method
-   private buildGeocodeQuery(): string {
-    const query = `${this.baseURL}?q=${this.cityName}&appid=${this.apiKey}`;
+   private buildGeocodeQuery(option: string): string {
+    const query = `${this.baseURL}/${option}?q=${this.cityName}&appid=${this.apiKey}`;
     return query;
    }
   // TODO: Create buildWeatherQuery method
-  private buildWeatherQuery(coordinates: Coordinates): string {
+  private buildWeatherQuery(coordinates: Coordinates, option: string): string {
     const { lat, lon } = coordinates;
-    const query = `${this.baseURL}?lat=${lat}&lon=${lon}&appid=${this.apiKey}`;
+    const query = `${this.baseURL}/${option}/?lat=${lat}&lon=${lon}&appid=${this.apiKey}`;
     return query;
   }
   // TODO: Create fetchAndDestructureLocationData method
   private async fetchAndDestructureLocationData() {
-    const locationData = await this.fetchLocationData(this.cityName);
-    const coordinates = this.destructureLocationData(locationData);
+    const {coord} = await this.fetchLocationData(this.cityName);
+    const coordinates = this.destructureLocationData(coord);
     return coordinates;
   }
   // TODO: Create fetchWeatherData method
    private async fetchWeatherData(coordinates: Coordinates) {
-    const weatherQuery = this.buildWeatherQuery(coordinates);
+    const weatherQuery = this.buildWeatherQuery(coordinates, 'weather');
     try {
       const response = await fetch(weatherQuery);
       const data = await response.json();
@@ -87,16 +99,16 @@ class WeatherService {
    }
   // TODO: Build parseCurrentWeather method
    private parseCurrentWeather(response: any) {
-    const { name } = response.city;
-    const { temp, humidity } = response.list[0].main;
-    const { speed } = response.list[0].wind;
-    const { icon } = response.list[0].weather[0];
+    const { name } = response;
+    const { temp, humidity } = response.main;
+    const { speed } = response.wind;
+    const { icon } = response.weather[0]; 
     const weather = new Weather(name, new Date().toDateString(), temp, humidity, speed, icon);
     return weather;
    }
   // TODO: Complete buildForecastArray method
    private buildForecastArray(currentWeather: Weather, weatherData: any[]) {
-    const forecastArray = weatherData.map((data: any) => {
+    const forecastArray = weatherData || [].map((data: any) => {
       const { temp, humidity } = data.main;
       const { speed } = data.wind;
       const { icon } = data.weather[0];
@@ -109,10 +121,12 @@ class WeatherService {
   async getWeatherForCity(city: string) {
     this.cityName = city;
     const coordinates = await this.fetchAndDestructureLocationData();
-    const weatherData = await this.fetchWeatherData(coordinates);
+    const weatherData = await this.fetchWeatherData(coordinates); 
     const currentWeather = this.parseCurrentWeather(weatherData);
-    const forecastArray = this.buildForecastArray(currentWeather, weatherData.list);
-    return { currentWeather, forecastArray };
+    const forecastWeather = await this.buildForecastArray(currentWeather, weatherData);
+    console.log("🚀 ~ WeatherService ~ getWeatherForCity ~ forecastWeather:", forecastWeather)
+    const forecastedWeather = await this.fetchLocationForecastData(this.cityName);
+    return { currentWeather, forecastedWeather };
   }
 }
 

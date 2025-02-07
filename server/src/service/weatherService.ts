@@ -106,28 +106,28 @@ class WeatherService {
     const weather = new Weather(name, new Date().toDateString(), temp, humidity, speed, icon);
     return weather;
    }
-  // TODO: Complete buildForecastArray method
-   private buildForecastArray(currentWeather: Weather, weatherData: any[]) {
-    const forecastArray = weatherData || [].map((data: any) => {
-      const { temp, humidity } = data.main;
-      const { speed } = data.wind;
-      const { icon } = data.weather[0];
-      const forecast = new Weather(currentWeather.city, new Date().toDateString(), temp, humidity, speed, icon);
-      return forecast;
-    });
-    return forecastArray;
-   }
-  // TODO: Complete getWeatherForCity method
-  async getWeatherForCity(city: string) {
-    this.cityName = city;
-    const coordinates = await this.fetchAndDestructureLocationData();
-    const weatherData = await this.fetchWeatherData(coordinates); 
-    const currentWeather = this.parseCurrentWeather(weatherData);
-    const forecastWeather = await this.buildForecastArray(currentWeather, weatherData);
-    console.log("🚀 ~ WeatherService ~ getWeatherForCity ~ forecastWeather:", forecastWeather)
-    const forecastedWeather = await this.fetchLocationForecastData(this.cityName);
-    return { currentWeather, forecastedWeather };
-  }
+// TODO: Complete buildForecastArray method
+async buildForecast() {
+  const forecastedWeather = await this.fetchLocationForecastData(
+    this.cityName
+  );
+  return {
+    ...forecastedWeather,
+    list: forecastedWeather.list.filter((item: { dt_txt: string }) =>
+      item.dt_txt.includes("00:00:00")
+    )
+  };
+}
+// TODO: Complete getWeatherForCity method
+async getWeatherForCity(city: string) {
+  this.cityName = city;
+  const coordinates = await this.fetchAndDestructureLocationData();
+  const weatherData = await this.fetchWeatherData(coordinates);
+  const currentWeather = this.parseCurrentWeather(weatherData);
+  const forecastedWeather = await this.buildForecast();
+
+  return { currentWeather, forecastedWeather };
+}
 }
 
 export default WeatherService;
